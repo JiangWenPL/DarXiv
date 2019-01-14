@@ -15,7 +15,7 @@ contract TestDarXiv {
     address expectedSubmitter = this;
 
     function testUserCanSubmit() public {
-        uint256 returnedId = darxiv.addSubmission("Titll-mvpose", now, 
+        uint256 returnedId = darxiv.addSubmission("Titll-mvpose", 
             "149,211,255,239,89,249,223,134,104,131,73,196,145,68,98,174,177,93,158,141,194,1,17,31,28,212,226,110,6,85,182,245",
             "https://jiangwenpl.github.io/files/multi-pose.pdf", "http://www.arxiv-sanity.com/static/thumbs/1901.03690v1.pdf.jpg");
     }
@@ -26,12 +26,12 @@ contract TestDarXiv {
     }
 
     function testUsercanEdit()public{
-        uint256 returnedId = darxiv.addSubmission("Titll-mvpose", now, 
+        uint256 returnedId = darxiv.addSubmission("Titll-mvpose", 
             "149,211,255,239,89,249,223,134,104,131,73,196,145,68,98,174,177,93,158,141,194,1,17,31,28,212,226,110,6,85,182,245",
             "https://jiangwenpl.github.io/files/multi-pose.pdf", "http://www.arxiv-sanity.com/static/thumbs/1901.03690v1.pdf.jpg");
-        darxiv.editSubmission(returnedId, "Titll-mvpose", now, 
+        darxiv.editSubmission(returnedId, "Titll-mvpose", 
             "149,211,255,239,89,249,223,134,104,131,73,196,145,68,98,174,177,93,158,141,194,1,17,31,28,212,226,110,6,85,182,245",
-            "https://jiangwenpl.github.io/files/multi-pose.pdf", "http://www.arxiv-sanity.com/static/thumbs/1901.03690v1.pdf.jpg");
+            "c", "http://www.arxiv-sanity.com/static/thumbs/1901.03690v1.pdf.jpg");
     }
 
     function testUsercanNumberDeleted()public{

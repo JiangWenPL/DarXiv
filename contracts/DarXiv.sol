@@ -25,10 +25,10 @@ contract DarXiv is mortal {
 
 
     /* Add a Submission */
-    function addSubmission(string _title, uint256 _datetime, string _digestUint8Str, string _pdfURL, string _imgURL)
+    function addSubmission(string _title, string _digestUint8Str, string _pdfURL, string _imgURL)
           public  returns (uint256) {
         submissions[nextSubmissionID].title = _title; 
-        submissions[nextSubmissionID].datetime = _datetime; 
+        submissions[nextSubmissionID].datetime = now; 
         submissions[nextSubmissionID].digestUint8Str = _digestUint8Str;
         submissions[nextSubmissionID].pdfURL = _pdfURL;
         submissions[nextSubmissionID].imgURL = _imgURL;
@@ -48,10 +48,10 @@ contract DarXiv is mortal {
     }
 
     /* Edit a Submission */
-    function editSubmission(uint256 _id, string _title, uint256 _datetime, string _digestUint8Str, string _pdfURL, string _imgURL)  public {
+    function editSubmission(uint256 _id, string _title, string _digestUint8Str, string _pdfURL, string _imgURL)  public {
         require(submissions[_id].submitter == msg.sender, "You cannot edit it since you are not a submitter");
         submissions[_id].title = _title; 
-        submissions[_id].datetime = _datetime; 
+        submissions[_id].datetime = now; 
         submissions[_id].digestUint8Str = _digestUint8Str;
         submissions[_id].pdfURL = _pdfURL;
         submissions[_id].imgURL = _imgURL;
