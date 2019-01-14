@@ -77,8 +77,14 @@ App = {
                     let digestUint8Str = new Uint8Array(digest).toString();
                     //App.contracts.DarXiv.deployed().then(instance=>console.log(instance.submissions))
                     console.log('Before submit');
-                    let submissionId = App.contracts.DarXiv.deployed().then(res => res.addSubmission(submitTitle, digestUint8Str, pdfURL, imgURL));
-                    console.log(submissionId + " Submission done")
+                    web3.eth.getAccounts(function (error, accounts) {
+                        if (error) {
+                            console.log(error);
+                        }
+                        var account = accounts[0];
+                        let submissionId = App.contracts.DarXiv.deployed().then(res => res.addSubmission(submitTitle, digestUint8Str, pdfURL, imgURL, {from: account}));
+                        console.log(submissionId + " Submission done")
+                    });
                 }).then(App.getSubmission(0)
             )
             ;
@@ -94,38 +100,42 @@ App = {
 // submissions[nextSubmissionID].pdfURL = _pdfURL;
 // submissions[nextSubmissionID].imgURL = _imgURL;
 // submissions[nextSubmissionID].submitter = msg.sender;
-    getSubmission: function (submissionId) {
-        console.log('HERE');
-        App.contracts.DarXiv.deployed().then(res => res.submissions(submissionId).then(submission => {
-                console.log('OUT');
-                var paperRow = $('#paperRow');
-                var paperTemplate = $('#paperTemplate');
+    getSubmission:
 
-                paperTemplate.find('.panel-title').text(submission[0]);
-                paperTemplate.find('.paper-datetime').text(submission[1]);
-                paperTemplate.find('.paper-pdfURL').text(submission[2]);
-                paperTemplate.find('.paper-digestUint8Str').text(submission[3]);
-                paperTemplate.find('img').attr('src', submission[4]);
-                paperTemplate.find('.paper-submitter').text(submission[5]);
+        function (submissionId) {
+            if (submissionId == 0)
+                $('#paperRow').children().remove();
+            console.log('HERE');
+            App.contracts.DarXiv.deployed().then(res => res.submissions(submissionId).then(submission => {
+                    console.log('OUT');
+                    var paperRow = $('#paperRow');
+                    var paperTemplate = $('#paperTemplate');
 
-                paperRow.append(paperTemplate.html());
-                App.contracts.DarXiv.deployed().then(res => {
-                    res.getNumberOfsubmissionsDeleted().then(numberOfSubmissionsDeleted => {
-                        if (submissionId < numberOfSubmissionsDeleted - 1) {
-                            App.getSubmission(submissionId + 1);
-                        } else {
-                            $('#loading').hide();
-                            $('#posts').show();
-                        }
-                    }).catch(error => {
-                        console.error('Error while getting number of blog posts (including deleted):');
-                        console.error(error);
-                    })
-                });
-            }
+                    paperTemplate.find('.panel-title').text(submission[0]);
+                    paperTemplate.find('.paper-datetime').text(submission[1]);
+                    paperTemplate.find('.paper-pdfURL').text(submission[2]);
+                    paperTemplate.find('.paper-digestUint8Str').text(submission[3]);
+                    paperTemplate.find('img').attr('src', submission[4]);
+                    paperTemplate.find('.paper-submitter').text(submission[5]);
+
+                    paperRow.append(paperTemplate.html());
+                    App.contracts.DarXiv.deployed().then(res => {
+                        res.getNumberOfsubmissionsDeleted().then(numberOfSubmissionsDeleted => {
+                            if (submissionId < numberOfSubmissionsDeleted - 1) {
+                                App.getSubmission(submissionId + 1);
+                            } else {
+                                $('#loading').hide();
+                                $('#posts').show();
+                            }
+                        }).catch(error => {
+                            console.error('Error while getting number of blog posts (including deleted):');
+                            console.error(error);
+                        })
+                    });
+                }
+                )
             )
-        )
-    }
+        }
 
 }
 ;
