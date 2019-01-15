@@ -33,59 +33,89 @@
                 <a class="nav-link" data-toggle="tab" href="#home">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-toggle="tab" href="#submit">Submit</a>
+                <a class="nav-link" data-toggle="modal" data-target="#myModal">Submit</a>
             </li>
         </ul>
     </div>
 </nav>
-<!--<ul class="nav nav-tabs">-->
-<!--<li class="nav-item">-->
-<!--<a class="nav-link active" data-toggle="tab" href="#home">Home</a>-->
-<!--</li>-->
-<!--<li class="nav-item">-->
-<!--<a class="nav-link" data-toggle="tab" href="#submit">Submit</a>-->
-<!--</li>-->
-<!--</ul>-->
-<div id="myTabContent" class="tab-content">
-    <div class="tab-pane fade show active" id="home">
-        <div class="container">
-            <div id="paperTemplate" style="display: none;">
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="panel panel-default panel-pet">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Scrappy</h3>
-                        </div>
-                        <div class="panel-body">
-                            <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center"
-                                 style="width: 100%;"
-                                 src="https://animalso.com/wp-content/uploads/2017/01/Golden-Retriever_6.jpg"
-                                 data-holder-rendered="true">
-                            <br/><br/>
-                            <div class="paper-datetime"></div>
-                            <div class="paper-pdfURL"></div>
-                            <div class="digestUint8Str"></div>
-                            <div class="paper-submitter"></div>
-                        </div>
-                    </div>
+<div class="container">
+    <div class="jumbotron">
+        <h1 class="display-3">Hello, world!</h1>
+        <p class="lead">This is a simple hero unit, a simple jumbotron-style component for calling extra attention to
+            featured content or information.</p>
+        <hr class="my-4">
+        <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
+        <p class="lead">
+            <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
+        </p>
+    </div>
+    <div class="col-lg-12" id="paperTemplate" style="display: none;">
+        <div class="jumbotron">
+            <h3 class="panel-title">Scrappy</h3>
+            <div class="panel panel-default panel-pet">
+                <div class="panel-body">
+                    <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center"
+                         style="width: 100%;"
+                         src="https://animalso.com/wp-content/uploads/2017/01/Golden-Retriever_6.jpg"
+                         data-holder-rendered="true">
+                    <br/><br/>
                 </div>
             </div>
-            <div id="paperRow" class="row">
-                <!-- PETS LOAD HERE -->
-            </div>
+            <div class="paper-datetime"></div>
+            <div class="flex-row"><a class="paper-pdfURL" href="">PDF Version</a></div>
+            <div class="paper-digestUint8Str"></div>
+            <div class="paper-submitter"></div>
         </div>
     </div>
-    <div class="tab-pane fade" id="submit">
-        <form>
-            <label for="submitTitle">Title</label><input type="text" id="submitTitle" name="submitTitle">
-            <label for="pdfURL">PDF url</label><input type="text" id="pdfURL" name="pdfURL">
-            <label for="imgURL">Image url</label><input type="text" id="imgURL" name="imgURL">
-            <button type="button" class="btn-submit">Submit</button>
-        </form>
+    <div id="paperRow" class="row">
+        <!-- PETS LOAD HERE -->
     </div>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">
+                    Add DarXiv Submission
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <form>
+                        <fieldset>
+                            <div class="form-group row">
+                                <label for="submitTitle" class="col-sm-4 col-form-label">Title</label>
+                                <input type="text" class="form-control" id="submitTitle" name="submitTitle">
+                            </div>
+                            <div class="form-group row">
+                                <label for="pdfURL" class="col-sm-4 col-form-label">PDF url</label>
+                                <input type="text" class="form-control" id="pdfURL" name="pdfURL">
+                            </div>
+                            <div class="form-group row">
+                                <label for="imgURL" class="col-sm-4 col-form-label">Image url</label>
+                                <input type="text" class="form-control" id="imgURL" name="imgURL">
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-submit">
+                    提交更改
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
 </div>
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="js/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<!--<script src="js/jquery.min.js"></script>-->
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="js/bootstrap.min.js"></script>
 <script src="js/web3.min.js"></script>

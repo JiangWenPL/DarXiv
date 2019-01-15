@@ -56,14 +56,14 @@ App = {
 
             // Set the provider for our contract
             App.contracts.DarXiv.setProvider(App.web3Provider);
-
+            App.web3Provider.enable();
             App.getSubmission(0);
         });
         return App.bindEvents();
     },
 
     bindEvents: function () {
-        $(document).on('click', '.btn-submit', App.submitPaper);
+        $(document).on('click', '#btn-submit', App.submitPaper);
     },
     submitPaper: function (event) {
         console.log("Hohoho");
@@ -74,21 +74,26 @@ App = {
         reader.onload = function () {
             window.crypto.subtle.digest('SHA-256', this.result)
                 .then(digest => {
-                    let digestUint8Str = new Uint8Array(digest).toString();
-                    //App.contracts.DarXiv.deployed().then(instance=>console.log(instance.submissions))
-                    console.log('Before submit');
-                    web3.eth.getAccounts(function (error, accounts) {
-                        if (error) {
-                            console.log(error);
-                        }
-                        var account = accounts[0];
-                        let submissionId = App.contracts.DarXiv.deployed().then(res => res.addSubmission(submitTitle, digestUint8Str, pdfURL, imgURL, {from: account}));
-                        console.log(submissionId + " Submission done")
-                    });
-                }).then(App.getSubmission(0)
+                        let digestUint8Str = new Uint8Array(digest).toString();
+                        //App.contracts.DarXiv.deployed().then(instance=>console.log(instance.submissions))
+                        console.log('Before submit');
+                        web3.eth.getAccounts(function (error, accounts) {
+                            if (error) {
+                                console.log(error);
+                            }
+                            var account = accounts[0];
+                            let submissionId = App.contracts.DarXiv.deployed()
+                                .then(res => res.addSubmission(submitTitle, digestUint8Str, pdfURL, imgURL))
+                                .catch(reason => {
+                                    console.log(reason);
+                                });
+                        });
+                    }
+                ).then(App.getSubmission(0)
             )
             ;
-        };
+        }
+        ;
         fetch(pdfURL)
             .then(res => res.blob())
             .then(blob => reader.readAsArrayBuffer(blob))
@@ -103,7 +108,7 @@ App = {
     getSubmission:
 
         function (submissionId) {
-            if (submissionId == 0)
+            if (submissionId === 0)
                 $('#paperRow').children().remove();
             console.log('HERE');
             App.contracts.DarXiv.deployed().then(res => res.submissions(submissionId).then(submission => {
@@ -113,12 +118,12 @@ App = {
 
                     paperTemplate.find('.panel-title').text(submission[0]);
                     paperTemplate.find('.paper-datetime').text(submission[1]);
-                    paperTemplate.find('.paper-pdfURL').text(submission[2]);
-                    paperTemplate.find('.paper-digestUint8Str').text(submission[3]);
+                    paperTemplate.find('.paper-digestUint8Str').text(submission[2]);
+                    paperTemplate.find('.paper-pdfURL').attr('href', submission[3]);
                     paperTemplate.find('img').attr('src', submission[4]);
                     paperTemplate.find('.paper-submitter').text(submission[5]);
 
-                    paperRow.append(paperTemplate.html());
+                    paperRow.prepend(paperTemplate.html());
                     App.contracts.DarXiv.deployed().then(res => {
                         res.getNumberOfsubmissionsDeleted().then(numberOfSubmissionsDeleted => {
                             if (submissionId < numberOfSubmissionsDeleted - 1) {
