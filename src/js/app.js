@@ -172,12 +172,17 @@ App = {
                     App.getDigestByURL(submission[3])
                         .then(res => {
                             let checkResult;
-                            if (res === submission[2].toString())
+                            if (res === submission[2].toString()) {
                                 checkResult = "This pdf is trustful";
-                            else
+                                paperRow.find("#check-" + submissionId.toString()).find("span").attr("class", "badge badge-pill badge-success");
+                                paperRow.find("#check-" + submissionId.toString()).find("span").text("Passed")
+                            } else {
                                 checkResult = "This pdf is not consistent with the record on block chain";
+                                paperRow.find("#check-" + submissionId.toString()).find("span").attr("class", "badge badge-pill badge-danger");
+                                paperRow.find("#check-" + submissionId.toString()).find("span").text("Failed");
+                            }
                             // console.log(submission[2] + " VS " + res);
-                            paperRow.find("#check-" + submissionId.toString()).text(checkResult);
+                            paperRow.find("#check-" + submissionId.toString()).find("a").text(checkResult);
                             // console.log(paperTemplate.html())
                         })
                         .catch(reason => console.log(reason));
