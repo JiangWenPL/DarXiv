@@ -3,22 +3,6 @@ App = {
     contracts: {},
 
     init: async function () {
-        // Load pets.
-        // $.getJSON('../pets.json', function (data) {
-        //     var petsRow = $('#petsRow');
-        //     var petTemplate = $('#petTemplate');
-        //
-        //     for (i = 0; i < data.length; i++) {
-        //         petTemplate.find('.panel-title').text(data[i].name);
-        //         petTemplate.find('img').attr('src', data[i].picture);
-        //         petTemplate.find('.pet-breed').text(data[i].breed);
-        //         petTemplate.find('.pet-age').text(data[i].age);
-        //         petTemplate.find('.pet-location').text(data[i].location);
-        //         petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
-        //
-        //         petsRow.append(petTemplate.html());
-        //     }
-        // });
 
         return await App.initWeb3();
     },
@@ -58,12 +42,76 @@ App = {
             App.contracts.DarXiv.setProvider(App.web3Provider);
             App.web3Provider.enable();
             App.getSubmission(0);
+            App.contracts.DarXiv.deployed()
+                .then(res => res.getNumberOfsubmissions())
+                .then(res => {
+                    if (res < 1) {
+                        App.readInitPapers();
+                    }
+                })
+                .catch(reason => console.log(reason));
         });
         return App.bindEvents();
     },
 
     bindEvents: function () {
         $(document).on('click', '#btn-submit', App.submitPaper);
+        $(document).on('click', '#btn-edi-submit', App.editPaper);
+    },
+
+    setEditID: function (submissionID) {
+        $("#edit-id").val(submissionID);
+        App.contracts.DarXiv.deployed()
+            .then(res => res.submissions(submissionID))
+            .then(submission => {
+                $("#editTitle").val(submission[0]);
+                $("#editPdfURL").val(submission[3]);
+                $("#editImgURL").val(submission[4]);
+                $("#editAuthors").val(submission[6]);
+                $("#editAbstract_").val(submission[7]);
+            }).catch(reason => console.log(reason));
+    },
+    editPaper: function () {
+        App.contracts.DarXiv.deployed()
+            .then(res => {
+                res.editSubmission(parseInt($("#edit-id").val()), $("#editTitle").val(), $("#editAuthors").val(),
+                    $("#editAbstract_").val(), $("#editPdfURL").val(), $("#editImgURL").val())
+            })
+            .catch(reason => console.log(reason));
+    },
+
+    readInitPapers: function () {
+        // Load papers for better visualization if its empty.
+        $.getJSON('../papers.json', function (data) {
+            App.contracts.DarXiv.deployed()
+            data.forEach(v => {
+                App.contracts.DarXiv.deployed()
+                    .then(res => res.addSubmission(v.title, v.authors, v.abstract_, v.digestUint8Str, v.pdfURL, v.imgURL))
+                    .catch(reason => {
+                        console.log(reason);
+                    });
+            })
+        });
+    },
+    getDigestByURL: function (pdfURL) {
+        return new Promise((resolve, reject) => {
+            let reader = new FileReader();
+            reader.onload = function () {
+                window.crypto.subtle.digest('SHA-256', this.result)
+                    .then(digest => {
+                        let digestUint8Str = new Uint8Array(digest).toString();
+                        resolve(digestUint8Str);
+                    }).catch(reason => reject(reason));
+            };
+            fetch(pdfURL, {mode: 'no-cors'})
+                .then(res => res.blob())
+                .then(blob => reader.readAsArrayBuffer(blob))
+                .catch(reason => {
+                    console.log(reason);
+                    reject(reason)
+                });
+
+        });
     },
     submitPaper: function (event) {
         console.log("Hohoho");
@@ -92,51 +140,56 @@ App = {
                                 });
                         });
                     }
-                ).then(App.getSubmission(0)
-            )
-            ;
-        }
-        ;
-        fetch(pdfURL)
+                );
+        };
+        fetch(pdfURL, {mode: 'no-cors'})
             .then(res => res.blob())
             .then(blob => reader.readAsArrayBuffer(blob))
             .catch(reason => console.log(reason));
     },
 
     getSubmission:
-
         function (submissionId) {
             if (submissionId === 0)
                 $('#paperRow').children().remove();
-            console.log('HERE');
-            App.contracts.DarXiv.deployed().then(res => res.submissions(submissionId).then(submission => {
-                    console.log('OUT');
+            // console.log('HERE');
+            App.contracts.DarXiv.deployed().then(res => res.submissions(submissionId)).then(submission => {
+                    // console.log('OUT');
                     var paperRow = $('#paperRow');
                     var paperTemplate = $('#paperTemplate');
 
                     paperTemplate.find('.panel-title').text(submission[0]);
-                    paperTemplate.find('.paper-datetime').text(submission[1]);
-                    paperTemplate.find('.paper-digestUint8Str').text(submission[2]);
+                    paperTemplate.find('.paper-datetime').text(new Date(1000 * submission[1]).toDateString());
+                    paperTemplate.find('.paper-digestUint8Str').attr("id", "check-" + submissionId.toString());
+                    App.getDigestByURL(submission[3])
+                        .then(res => {
+                            let checkResult;
+                            if (res === submission[2].toString())
+                                checkResult = "This pdf is trustful";
+                            else
+                                checkResult = "This pdf is not consistent with the record on block chain";
+                            // console.log(submission[2] + " VS " + res);
+                            paperRow.find("#check-" + submissionId.toString()).text(checkResult);
+                            // console.log(paperTemplate.html())
+                        })
+                        .catch(reason => console.log(reason));
                     paperTemplate.find('.paper-pdfURL').attr('href', submission[3]);
                     paperTemplate.find('img').attr('src', submission[4]);
                     paperTemplate.find('.paper-submitter').text(submission[5]);
-
+                    paperTemplate.find('.panel-authors').text(submission[6]);
+                    paperTemplate.find('.paper-abstract').text(submission[7]);
+                    paperTemplate.find('.btn-primary').attr("onclick", "App.setEditID(" + submissionId + ")");
                     paperRow.prepend(paperTemplate.html());
-                    App.contracts.DarXiv.deployed().then(res => {
-                        res.getNumberOfsubmissionsDeleted().then(numberOfSubmissionsDeleted => {
-                            if (submissionId < numberOfSubmissionsDeleted - 1) {
+                    App.contracts.DarXiv.deployed()
+                        .then(res => res.getNumberOfsubmissions())
+                        .then(numSubmissions => {
+                            if (submissionId < numSubmissions - 1)
                                 App.getSubmission(submissionId + 1);
-                            } else {
-                                $('#loading').hide();
-                                $('#posts').show();
-                            }
                         }).catch(error => {
-                            console.error('Error while getting number of blog posts (including deleted):');
-                            console.error(error);
-                        })
+                        console.error('Error while getting number of blog posts (including deleted):');
+                        console.error(error);
                     });
                 }
-                )
             )
         }
 
