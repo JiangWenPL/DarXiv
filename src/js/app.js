@@ -56,7 +56,7 @@ App = {
 
     bindEvents: function () {
         $(document).on('click', '#btn-submit', App.submitPaper);
-        $(document).on('click', '#btn-edi-submit', App.editPaper);
+        $(document).on('click', '#btn-edit-submit', App.editPaper);
     },
 
     setEditID: function (submissionID) {
@@ -83,7 +83,6 @@ App = {
     readInitPapers: function () {
         // Load papers for better visualization if its empty.
         $.getJSON('../papers.json', function (data) {
-            App.contracts.DarXiv.deployed()
             data.forEach(v => {
                 App.contracts.DarXiv.deployed()
                     .then(res => res.addSubmission(v.title, v.authors, v.abstract_, v.digestUint8Str, v.pdfURL, v.imgURL))
@@ -95,23 +94,31 @@ App = {
     },
     getDigestByURL: function (pdfURL) {
         return new Promise((resolve, reject) => {
-            let reader = new FileReader();
-            reader.onload = function () {
-                window.crypto.subtle.digest('SHA-256', this.result)
-                    .then(digest => {
-                        let digestUint8Str = new Uint8Array(digest).toString();
-                        resolve(digestUint8Str);
-                    }).catch(reason => reject(reason));
-            };
-            fetch(pdfURL, {mode: 'no-cors'})
-                .then(res => res.blob())
-                .then(blob => reader.readAsArrayBuffer(blob))
-                .catch(reason => {
-                    console.log(reason);
-                    reject(reason)
-                });
+                let reader = new FileReader();
+                reader.onload = function () {
+                    window.crypto.subtle.digest('SHA-256', new Uint8Array(this.result))
+                        .then(digest => {
+                            digExpr = digest;
+                            let digestUint8Str = new Uint8Array(digest).toString();
+                            resolve(digestUint8Str);
+                            console.log(digestUint8Str, pdfURL);
+                        }).catch(reason => reject(reason));
+                };
+                fetch(new Request(pdfURL))
+                    .then(res => res.blob().then(blob => {
+                            console.log(blob, pdfURL);
+                            reader.readAsArrayBuffer(blob)
+                        }
+                        )
+                    )
+                    .catch(reason => {
+                        console.log(reason);
+                        reject(reason)
+                    });
 
-        });
+            }
+        )
+            ;
     },
     submitPaper: function (event) {
         console.log("Hohoho");
@@ -146,7 +153,8 @@ App = {
             .then(res => res.blob())
             .then(blob => reader.readAsArrayBuffer(blob))
             .catch(reason => console.log(reason));
-    },
+    }
+    ,
 
     getSubmission:
         function (submissionId) {
