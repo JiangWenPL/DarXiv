@@ -12,6 +12,8 @@ contract DarXiv is mortal {
         string pdfURL;
         string imgURL;
         address submitter;
+        string authors;
+        string abstract_;
     }
 
     /* ID of the Next Submission */
@@ -25,7 +27,7 @@ contract DarXiv is mortal {
 
 
     /* Add a Submission */
-    function addSubmission(string _title, string _digestUint8Str, string _pdfURL, string _imgURL)
+    function addSubmission(string _title, string _authors, string _abstract_,string _digestUint8Str, string _pdfURL, string _imgURL)
           public  returns (uint256) {
         submissions[nextSubmissionID].title = _title; 
         submissions[nextSubmissionID].datetime = now; 
@@ -33,6 +35,8 @@ contract DarXiv is mortal {
         submissions[nextSubmissionID].pdfURL = _pdfURL;
         submissions[nextSubmissionID].imgURL = _imgURL;
         submissions[nextSubmissionID].submitter = msg.sender;
+        submissions[nextSubmissionID].authors = _authors;
+        submissions[nextSubmissionID].abstract_ = _abstract_;
 
         nextSubmissionID ++; 
         submissionNum ++;

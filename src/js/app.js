@@ -70,6 +70,9 @@ App = {
         let submitTitle = $('#submitTitle').val();
         let pdfURL = $('#pdfURL').val();
         let imgURL = $('#imgURL').val();
+        let authors = $('#authors').val();
+        let abstract_ = $('#abstract_').val();
+
         var reader = new FileReader();
         reader.onload = function () {
             window.crypto.subtle.digest('SHA-256', this.result)
@@ -83,7 +86,7 @@ App = {
                             }
                             var account = accounts[0];
                             let submissionId = App.contracts.DarXiv.deployed()
-                                .then(res => res.addSubmission(submitTitle, digestUint8Str, pdfURL, imgURL))
+                                .then(res => res.addSubmission(submitTitle, authors, abstract_, digestUint8Str, pdfURL, imgURL))
                                 .catch(reason => {
                                     console.log(reason);
                                 });
@@ -99,12 +102,7 @@ App = {
             .then(blob => reader.readAsArrayBuffer(blob))
             .catch(reason => console.log(reason));
     },
-//     submissions[nextSubmissionID].title = _title;
-// submissions[nextSubmissionID].datetime = now;
-// submissions[nextSubmissionID].digestUint8Str = _digestUint8Str;
-// submissions[nextSubmissionID].pdfURL = _pdfURL;
-// submissions[nextSubmissionID].imgURL = _imgURL;
-// submissions[nextSubmissionID].submitter = msg.sender;
+
     getSubmission:
 
         function (submissionId) {
