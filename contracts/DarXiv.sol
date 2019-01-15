@@ -48,14 +48,10 @@ contract DarXiv is mortal {
     }
 
     /* Edit a Submission */
-    function editSubmission(uint256 _id, string _title, string _digestUint8Str, string _pdfURL, string _imgURL)  public {
+    function editSubmission(uint256 _id, string _pdfURL, string _imgURL)  public {
         require(submissions[_id].submitter == msg.sender, "You cannot edit it since you are not a submitter");
-        submissions[_id].title = _title; 
-        submissions[_id].datetime = now; 
-        submissions[_id].digestUint8Str = _digestUint8Str;
         submissions[_id].pdfURL = _pdfURL;
         submissions[_id].imgURL = _imgURL;
-        submissions[_id].submitter = msg.sender;
     }
 
     /* Get Number of the submissions (Including Deleted) */
