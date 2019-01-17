@@ -128,82 +128,75 @@ App = {
         let authors = $('#authors').val();
         let abstract_ = $('#abstract_').val();
 
-        var reader = new FileReader();
-        reader.onload = function () {
-            window.crypto.subtle.digest('SHA-256', this.result)
-                .then(digest => {
-                        let digestUint8Str = new Uint8Array(digest).toString();
-                        //App.contracts.DarXiv.deployed().then(instance=>console.log(instance.submissions))
-                        console.log('Before submit');
-                        web3.eth.getAccounts(function (error, accounts) {
-                            if (error) {
-                                console.log(error);
-                            }
-                            var account = accounts[0];
-                            let submissionId = App.contracts.DarXiv.deployed()
-                                .then(res => res.addSubmission(submitTitle, authors, abstract_, digestUint8Str, pdfURL, imgURL))
-                                .catch(reason => {
-                                    console.log(reason);
-                                });
-                        });
-                    }
-                );
-        };
-        fetch(pdfURL, {mode: 'no-cors'})
-            .then(res => res.blob())
-            .then(blob => reader.readAsArrayBuffer(blob))
-            .catch(reason => console.log(reason));
-    }
-    ,
+        App.getDigestByURL(pdfURL).then(digestUint8Str => {
+            web3.eth.getAccounts(function (error, accounts) {
+                if (error) {
+                    console.log(error);
+                }
+                var account = accounts[0];
+                let submissionId = App.contracts.DarXiv.deployed()
+                    .then(res => res.addSubmission(submitTitle, authors, abstract_, digestUint8Str, pdfURL, imgURL))
+                    .catch(reason => {
+                        console.log(reason);
+                    });
+            });
+        });
+    },
 
     getSubmission:
         function (submissionId) {
             if (submissionId === 0)
                 $('#paperRow').children().remove();
             // console.log('HERE');
-            App.contracts.DarXiv.deployed().then(res => res.submissions(submissionId)).then(submission => {
-                    // console.log('OUT');
-                    var paperRow = $('#paperRow');
-                    var paperTemplate = $('#paperTemplate');
+            App.contracts.DarXiv.deployed()
+                .then(res => res.getNumberOfsubmissions())
+                .then(res => {
+                    if (res === 0) throw "Empty";
+                    else App.contracts.DarXiv.deployed()
+                        .then(res => res.submissions(submissionId))
+                        .then(submission => {
+                            // console.log('OUT');
+                            var paperRow = $('#paperRow');
+                            var paperTemplate = $('#paperTemplate');
 
-                    paperTemplate.find('.panel-title').text(submission[0]);
-                    paperTemplate.find('.paper-datetime').text(new Date(1000 * submission[1]).toDateString());
-                    paperTemplate.find('.paper-digestUint8Str').attr("id", "check-" + submissionId.toString());
-                    App.getDigestByURL(submission[3])
-                        .then(res => {
-                            let checkResult;
-                            if (res === submission[2].toString()) {
-                                checkResult = "This pdf is trustful";
-                                paperRow.find("#check-" + submissionId.toString()).find("span").attr("class", "badge badge-pill badge-success");
-                                paperRow.find("#check-" + submissionId.toString()).find("span").text("Passed")
-                            } else {
-                                checkResult = "This pdf is not consistent with the record on block chain";
-                                paperRow.find("#check-" + submissionId.toString()).find("span").attr("class", "badge badge-pill badge-danger");
-                                paperRow.find("#check-" + submissionId.toString()).find("span").text("Failed");
-                            }
-                            // console.log(submission[2] + " VS " + res);
-                            paperRow.find("#check-" + submissionId.toString()).find("a").text(checkResult);
-                            // console.log(paperTemplate.html())
+                            paperTemplate.find('.panel-title').text(submission[0]);
+                            paperTemplate.find('.paper-datetime').text(new Date(1000 * submission[1]).toDateString());
+                            paperTemplate.find('.paper-digestUint8Str').attr("id", "check-" + submissionId.toString());
+                            App.getDigestByURL(submission[3])
+                                .then(res => {
+                                    let checkResult;
+                                    if (res === submission[2].toString()) {
+                                        checkResult = "This pdf is trustful";
+                                        paperRow.find("#check-" + submissionId.toString()).find("span").attr("class", "badge badge-pill badge-success");
+                                        paperRow.find("#check-" + submissionId.toString()).find("span").text("Passed")
+                                    } else {
+                                        checkResult = "This pdf is not consistent with the record on block chain";
+                                        paperRow.find("#check-" + submissionId.toString()).find("span").attr("class", "badge badge-pill badge-danger");
+                                        paperRow.find("#check-" + submissionId.toString()).find("span").text("Failed");
+                                    }
+                                    // console.log(submission[2] + " VS " + res);
+                                    paperRow.find("#check-" + submissionId.toString()).find("a").text(checkResult);
+                                    // console.log(paperTemplate.html())
+                                })
+                                .catch(reason => console.log(reason));
+                            paperTemplate.find('.paper-pdfURL').attr('href', submission[3]);
+                            paperTemplate.find('img').attr('src', submission[4]);
+                            paperTemplate.find('.paper-submitter').text(submission[5]);
+                            paperTemplate.find('.panel-authors').text(submission[6]);
+                            paperTemplate.find('.paper-abstract').text(submission[7]);
+                            paperTemplate.find('.btn-primary').attr("onclick", "App.setEditID(" + submissionId + ")");
+                            paperRow.prepend(paperTemplate.html());
+                            App.contracts.DarXiv.deployed()
+                                .then(res => res.getNumberOfsubmissions())
+                                .then(numSubmissions => {
+                                    if (submissionId < numSubmissions - 1)
+                                        App.getSubmission(submissionId + 1);
+                                }).catch(error => {
+                                console.error('Error while getting number of blog posts (including deleted):');
+                                console.error(error);
+                            });
                         })
-                        .catch(reason => console.log(reason));
-                    paperTemplate.find('.paper-pdfURL').attr('href', submission[3]);
-                    paperTemplate.find('img').attr('src', submission[4]);
-                    paperTemplate.find('.paper-submitter').text(submission[5]);
-                    paperTemplate.find('.panel-authors').text(submission[6]);
-                    paperTemplate.find('.paper-abstract').text(submission[7]);
-                    paperTemplate.find('.btn-primary').attr("onclick", "App.setEditID(" + submissionId + ")");
-                    paperRow.prepend(paperTemplate.html());
-                    App.contracts.DarXiv.deployed()
-                        .then(res => res.getNumberOfsubmissions())
-                        .then(numSubmissions => {
-                            if (submissionId < numSubmissions - 1)
-                                App.getSubmission(submissionId + 1);
-                        }).catch(error => {
-                        console.error('Error while getting number of blog posts (including deleted):');
-                        console.error(error);
-                    });
-                }
-            )
+                })
         }
 
 }
